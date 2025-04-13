@@ -1,5 +1,5 @@
 "use client";
-import { Card, Row, Col, Spin } from "antd";
+import { Card, Row, Col, Spin, Carousel } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -48,7 +48,7 @@ export default function Home() {
   }, []);
 
   const toggleFavorite = async (id: number) => {
-    if (!token) return; // skip if not logged in
+    if (!token) return;
 
     const isFav = favorites.includes(id);
 
@@ -77,20 +77,28 @@ export default function Home() {
             <Col key={prop.id} xs={24} sm={12} md={8} lg={6}>
               <Card
                 hoverable
+                className="hover:size=25"
                 onClick={() => router.push(`/properties/${prop.id}`)}
                 cover={
                   <div className="relative">
                     {prop.images?.length > 0 && (
-                      <img
-                        src={prop.images[0]}
-                        alt={prop.title}
-                        className="h-48 w-full object-cover"
-                      />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Carousel arrows={prop.images.length > 1}>
+                          {prop.images.map((image, index) => (
+                            <img
+                              key={index}
+                              src={image}
+                              alt={`Image ${index + 1}`}
+                              className="h-48 w-full object-cover"
+                            />
+                          ))}
+                        </Carousel>
+                      </div>
                     )}
                     <div
                       className="absolute top-2 right-2 bg-white rounded-full p-1 z-10"
                       onClick={(e) => {
-                        e.stopPropagation(); // empêche la redirection
+                        e.stopPropagation();
                         toggleFavorite(prop.id);
                       }}
                     >
