@@ -1,5 +1,5 @@
 "use client";
-import { Card, Row, Col, Spin, Carousel } from "antd";
+import { Card, Row, Col, Spin, Carousel, Button } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -68,7 +68,12 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">🏠 Annonces disponibles</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">🏠 Annonces disponibles</h1>
+        <Button type="primary" onClick={() => router.push("/favorites")}>
+          Voir mes favoris
+        </Button>
+      </div>{" "}
       {loading ? (
         <Spin size="large" />
       ) : (
