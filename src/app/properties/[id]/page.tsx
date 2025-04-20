@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Carousel, Tag, Divider, Button } from "antd";
+import Image from "next/image";
 import {
   HomeOutlined,
   DollarOutlined,
@@ -45,20 +46,19 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* Carrousel d’images */}
       <Carousel dots className="rounded-xl overflow-hidden mb-6">
         {property.images.map((url, index) => (
-          <div key={index}>
-            <img
-              src={url}
-              alt={`Image ${index + 1}`}
-              className="h-[400px] w-full object-cover"
-            />
-          </div>
+          <Image
+            key={index}
+            src={url}
+            alt={`Image ${index + 1}`}
+            width={800}
+            height={400}
+            className="h-[400px] w-full object-cover"
+          />
         ))}
       </Carousel>
 
-      {/* Infos principales */}
       <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
       <div className="text-gray-500 text-lg mb-4 flex items-center gap-2">
         <EnvironmentOutlined /> {property.location}
@@ -84,7 +84,6 @@ export default function PropertyDetailPage() {
 
       <Divider />
 
-      {/* Description */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">À propos du bien</h2>
         <p className="text-gray-700">{property.description}</p>
@@ -98,7 +97,6 @@ export default function PropertyDetailPage() {
 
       <Divider />
 
-      {/* CTA Contact (placeholder) */}
       <div className="mt-6">
         <Button type="primary" size="large">
           Contacter l’agence

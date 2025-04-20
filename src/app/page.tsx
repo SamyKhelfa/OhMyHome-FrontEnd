@@ -1,5 +1,5 @@
 "use client";
-import { Card, Row, Col, Spin } from "antd";
+import { Card, Row, Col, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -11,7 +11,7 @@ import {
 import Cookies from "js-cookie";
 
 const API_URL = "http://localhost:3000/api";
-const token = Cookies.get("token");
+const token = localStorage.getItem("token"); // Remplacez Cookies.get("token")
 
 type Property = {
   id: number;
@@ -43,26 +43,36 @@ export default function Home() {
         },
       })
         .then((res) => res.json())
-        .then((data) => setFavorites(data.map((p: any) => p.id)));
+        .then((data: { id: number }[]) => setFavorites(data.map((p) => p.id)));
     }
   }, []);
 
-  const toggleFavorite = async (id: number) => {
-    if (!token) return; // skip if not logged in
+  const toggleFavorite = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Empêche la redirection
+    if (!token) {
+      message.error("Veuillez vous connecter pour ajouter aux favoris.");
+      return;
+    }
 
     const isFav = favorites.includes(id);
 
-    const res = await fetch(`${API_URL}/properties/${id}/favorite`, {
-      method: isFav ? "DELETE" : "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const res = await fetch(`${API_URL}/properties/${id}/favorite`, {
+        method: isFav ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (res.ok) {
-      setFavorites((prev) =>
-        isFav ? prev.filter((fid) => fid !== id) : [...prev, id]
-      );
+      if (res.ok) {
+        setFavorites((prev) =>
+          isFav ? prev.filter((fid) => fid !== id) : [...prev, id]
+        );
+      } else {
+        message.error("Erreur lors de la mise à jour des favoris.");
+      }
+    } catch {
+      message.error("Impossible de mettre à jour les favoris.");
     }
   };
 
@@ -84,14 +94,14 @@ export default function Home() {
                       <img
                         src={prop.images[0]}
                         alt={prop.title}
-                        className="h-48 w-full object-cover"
+                        className="w-full object-cover aspect-w-4 aspect-h-3"
                       />
                     )}
                     <div
                       className="absolute top-2 right-2 bg-white rounded-full p-1 z-10"
                       onClick={(e) => {
                         e.stopPropagation(); // empêche la redirection
-                        toggleFavorite(prop.id);
+                        toggleFavorite(prop.id, e);
                       }}
                     >
                       {favorites.includes(prop.id) ? (
