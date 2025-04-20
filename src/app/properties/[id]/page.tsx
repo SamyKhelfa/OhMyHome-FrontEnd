@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Carousel, Tag, Divider, Button } from "antd";
+import { Carousel, Tag, Divider, Button, message } from "antd";
 import Image from "next/image";
 import {
   HomeOutlined,
@@ -11,7 +11,13 @@ import {
   EnvironmentOutlined,
   RiseOutlined,
   CalendarOutlined,
+  HeartFilled,
+  HeartOutlined,
 } from "@ant-design/icons";
+
+const API_URL = "http://localhost:3000/api";
+const token =
+  typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
 type Property = {
   id: number;
@@ -33,6 +39,7 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const id = params?.id;
   const [property, setProperty] = useState<Property | null>(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -40,7 +47,46 @@ export default function PropertyDetailPage() {
         .then((res) => res.json())
         .then((data) => setProperty(data));
     }
+
+    if (token) {
+      fetch(`${API_URL}/properties/favorites/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data: { id: number }[]) => setFavorites(data.map((p) => p.id)));
+    }
   }, [id]);
+
+  const toggleFavorite = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) {
+      message.error("Veuillez vous connecter pour ajouter aux favoris.");
+      return;
+    }
+
+    const isFav = favorites.includes(id);
+
+    try {
+      const res = await fetch(`${API_URL}/properties/${id}/favorite`, {
+        method: isFav ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        setFavorites((prev) =>
+          isFav ? prev.filter((fid) => fid !== id) : [...prev, id]
+        );
+      } else {
+        message.error("Erreur lors de la mise à jour des favoris.");
+      }
+    } catch {
+      message.error("Impossible de mettre à jour les favoris.");
+    }
+  };
 
   if (!property) return <div className="p-6 text-center">Chargement...</div>;
 
@@ -48,14 +94,28 @@ export default function PropertyDetailPage() {
     <div className="max-w-6xl mx-auto p-6">
       <Carousel dots className="rounded-xl overflow-hidden mb-6">
         {property.images.map((url, index) => (
-          <Image
-            key={index}
-            src={url}
-            alt={`Image ${index + 1}`}
-            width={800}
-            height={400}
-            className="h-[400px] w-full object-cover"
-          />
+          <div className="relative" key={index}>
+            <Image
+              src={url}
+              alt={`Image ${index + 1}`}
+              width={800}
+              height={400}
+              className="h-[400px] w-full object-cover"
+            />
+            <div
+              className="absolute top-2 right-2 bg-white rounded-full p-1 z-10"
+              onClick={(e) => {
+                e.stopPropagation(); // empêche la redirection
+                toggleFavorite(property.id, e);
+              }}
+            >
+              {favorites.includes(property.id) ? (
+                <HeartFilled style={{ color: "red", fontSize: 20 }} />
+              ) : (
+                <HeartOutlined style={{ fontSize: 20 }} />
+              )}
+            </div>
+          </div>
         ))}
       </Carousel>
 

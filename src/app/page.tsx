@@ -1,17 +1,13 @@
 "use client";
-import { Card, Row, Col, Spin, message } from "antd";
+import { Card, Row, Col, Spin, message, Button } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  LeftOutlined,
-  RightOutlined,
-  HeartFilled,
-  HeartOutlined,
-} from "@ant-design/icons";
-import Cookies from "js-cookie";
+import { HeartFilled, HeartOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 const API_URL = "http://localhost:3000/api";
-const token = localStorage.getItem("token"); // Remplacez Cookies.get("token")
+const token =
+  typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
 type Property = {
   id: number;
@@ -48,7 +44,7 @@ export default function Home() {
   }, []);
 
   const toggleFavorite = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêche la redirection
+    e.stopPropagation();
     if (!token) {
       message.error("Veuillez vous connecter pour ajouter aux favoris.");
       return;
@@ -78,7 +74,12 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">🏠 Annonces disponibles</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">🏠 Annonces disponibles</h1>
+        <Button type="primary" onClick={() => router.push("/favorites")}>
+          Voir mes favoris
+        </Button>
+      </div>{" "}
       {loading ? (
         <Spin size="large" />
       ) : (
@@ -91,16 +92,18 @@ export default function Home() {
                 cover={
                   <div className="relative">
                     {prop.images?.length > 0 && (
-                      <img
+                      <Image
                         src={prop.images[0]}
                         alt={prop.title}
-                        className="w-full object-cover aspect-w-4 aspect-h-3"
+                        width={400}
+                        height={300}
+                        className="h-48 w-full object-cover"
                       />
                     )}
                     <div
                       className="absolute top-2 right-2 bg-white rounded-full p-1 z-10"
                       onClick={(e) => {
-                        e.stopPropagation(); // empêche la redirection
+                        e.stopPropagation();
                         toggleFavorite(prop.id, e);
                       }}
                     >
